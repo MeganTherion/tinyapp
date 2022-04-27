@@ -6,9 +6,13 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-
-app.get("/", (req, res) => { //registers handler on root path "/"
+//register handler on root path "/"
+app.get("/", (req, res) => { 
   res.send("Hello!");
+});
+//add additional endpoints:
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
 });
 
 app.listen(PORT, () => {
