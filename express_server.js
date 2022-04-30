@@ -46,7 +46,11 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase["shortURL"]
+  const longURL = urlDatabase[req.params.shortURL]
+  //console.log(longURL, shortURL);
+  if (!longURL) {
+    return res.status(401).send("URL does not exist"); 
+  }
   res.redirect(longURL);
 })
 
@@ -57,7 +61,8 @@ app.get("/urls/new", (req,res) => {
 })
 
 app.get("/urls/:shortURL", (req, res) => {
-const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase["shortURL"] };
+//const longURL = urlDatabase[req.params.shortURL];
+const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
 //console.log(req.params);
 res.render("urls_show", templateVars)
 // let longURL = urlDatabase["shortURL"]
