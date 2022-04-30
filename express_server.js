@@ -27,34 +27,26 @@ app.get("/urls.json", (req, res) => {
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n")
 });
-app.post("/urls", (res, req) => {
-  console.log(req.body); //log the POST request to the console
-  res.send("ok");
-});
-// will a variable created in one request be available in another?
-app.get("/set", (req, res) => {
-  const a = 1;
-  res.send(`a = ${a}`);
-});
-//now check to see if it's available:
-app.get("/fetch", (req, res) => {
-  res.send(`a = ${a}`)
-}); //not available!
+
 
 app.get("/urls", (req, res) => { 
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars)
 });
 
+app.post("/urls", (req, res) => {
+  console.log(req.body); //log the POST request to the console
+  res.send("ok");
+});
+
 
 app.get("/urls/new", (req,res) => {
   res.render("urls_new");
+  // generateRandomString();
 })
 
 app.get("/urls/:shortURL", (req, res) => {
-//let key = Object.keys(templateVars).find(k=>obj[k]===value);
 const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
-// console.log(req.params)
 res.render("urls_show", templateVars)
 })
 
