@@ -50,15 +50,17 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars)
 });
 
-
+app.get("/login", (req, res) => {
+  const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase }
+  res.render("login", templateVars);
+})
 
 app.post("/login", (req, res) => {
-  const {userEmail, userPass} = req.body;
-  const currentUser = users.find((user) => {return user.email === userEmail && user.password === userPass});
-  console.log(currentUser)
-  res.cookie('user_id', currentUser.id);
-  res.redirect(`/urls`)
-})
+const user_id = req.body.user_id;
+console.log(user_id);
+res.cookie('user_id', user_id);
+res.redirect(`/urls`);
+});
 
 app.post("/logout", (req, res) => { 
   const user_id = req.cookies["user_id"]
@@ -74,21 +76,17 @@ app.post("/urls/:shortURL/update", (req, res) => {
 })
 
 app.post("/urls", (req, res) => {
-  //console.log("req body", req.body); //log the POST request to the console
   let shortURL = generateRandomString();
-  //let username = req.cookies["username"]
   let longURL = req.body["longURL"];
   urlDatabase[shortURL]= `http://${longURL}`;
-  //console.log(urlDatabase)
   res.redirect(`/urls/${shortURL}`)
-  //res.send("ok");
+  
   
 });
 
 
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  //const username = req.cookies["username"]
   delete urlDatabase[req.params.shortURL];
   res.redirect(`/urls`);
 });
@@ -96,9 +94,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 
 app.get("/u/:shortURL", (req, res) => {
-  //const username = req.cookies["username"]
   const longURL = urlDatabase[req.params.shortURL]
-  //console.log(longURL, shortURL);
   if (!longURL) {
     return res.status(401).send("URL does not exist"); 
   }
@@ -111,38 +107,42 @@ app.get("/register", (req, res) => {
 })
 
 
-
-
-
 app.post("/register", (req, res) => {
-  const templateVars = { users }
+const templateVars = { users }
   //const templateVars = { username: req.cookies["username"] };
   //console.log(req.body.userName["id"]);
   console.log("req body", req.body)
   const newUserId = generateRandomString();
-  res.cookie('user_id', newUserId)
-  users[newUserId] = {
+  const newUser = {
     id : newUserId,
     name : req.body.userName,
     email : req.body.email,
     password : req.body.password
   };
-  console.log(users)
+  if (newUser.email === '') {
+    return res.status(400).send("email field cannot be empty");
+   } if (newUser.password === '') {
+   return res.status(400).send("password field cannot be empty");
+  } 
+  for (let u in users) {  
+    // console.log(users[u].email)
+    // console.log(users[newUserId].email)
+    if (users[u].email === newUser.email) {
+    return res.status(400).send("email already in use")
+   }
+  }
+  //console.log(users)
+   
   
-  //if email = '' res.error
   
-  // if (users[user_id].email === '') {
-  //   return res.status(400).send("email field cannot be empty");
-  //  } if (users[user_id].password === '') {
-  //  return res.status(400).send("password field cannot be empty");
-  // } for (let u in users) {
-  //   if (u["email"] === users[user_id].email) {
-  //   return res.status(400).send("email already in use")
-   //}
 
+  users[newUserId] = newUser;
+  res.cookie('user_id', newUserId)
   res.redirect("/urls")
+  console.log(newUserId)
   //res.render(templateVars);
 })
+
 // const userHelper = function(lookup) {
 //   for (let u in users) {
 //     if (u[lookup] === users[user_id][lookup]) {
