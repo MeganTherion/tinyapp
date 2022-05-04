@@ -46,23 +46,45 @@ app.get("/hello", (req, res) => {
 
 
 app.get("/urls", (req, res) => { 
-  const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
+  const templateVars = { 
+    user_id: req.cookies["user_id"], 
+    urls: urlDatabase 
+  };
   res.render("urls_index", templateVars)
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase }
+  const templateVars = { 
+    user_id: req.cookies["user_id"], 
+  }
   res.render("login", templateVars);
 })
 
 app.post("/login", (req, res) => {
-const user_id = req.body.user_id;
-console.log(user_id);
-res.cookie('user_id', user_id);
-res.redirect(`/urls`);
-});
+  const templateVars = { users }
+  for (let u in users) {  
+    //console.log(users)
+    if (!req.body.email) {
+    return res.status(403).send("email not found");
+   } else if (req.body.email === users[u].email) {
+     if (users[u].password !== req.body.password) {
+       return res.status(403).send("wrong password");
+     }
+     const user_id = users[u].id;
+     res.cookie('user_id', user_id)
+   }
+  }
+     
 
-app.post("/logout", (req, res) => { 
+  // const user_id = req.body.email;
+  // const password = req.body.password
+  //res.cookie('user_id', user_id);
+  res.redirect('/urls');
+  //console.log(user_id, password)
+
+})
+
+app.post('/logout', (req, res) => { 
   const user_id = req.cookies["user_id"]
   res.clearCookie('user_id', user_id);
   res.redirect('/urls');
@@ -109,8 +131,6 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
 const templateVars = { users }
-  //const templateVars = { username: req.cookies["username"] };
-  //console.log(req.body.userName["id"]);
   console.log("req body", req.body)
   const newUserId = generateRandomString();
   const newUser = {
@@ -125,17 +145,10 @@ const templateVars = { users }
    return res.status(400).send("password field cannot be empty");
   } 
   for (let u in users) {  
-    // console.log(users[u].email)
-    // console.log(users[newUserId].email)
     if (users[u].email === newUser.email) {
     return res.status(400).send("email already in use")
    }
   }
-  //console.log(users)
-   
-  
-  
-
   users[newUserId] = newUser;
   res.cookie('user_id', newUserId)
   res.redirect("/urls")
