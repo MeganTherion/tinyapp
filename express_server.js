@@ -28,6 +28,8 @@ const users = {
     password: "dishwasher-funk"
   }
 };
+
+
 //register handler on root path "/"
 app.get("/", (req, res) => { 
   res.send("Hello!");
@@ -51,13 +53,14 @@ app.get("/urls", (req, res) => {
 
 
 app.post("/login", (req, res) => {
-  const username = req.body.username;
-  console.log(username)
-  res.cookie('username', username);
+  const {userEmail, userPass} = req.body;
+  const currentUser = users.find((user) => {return user.email === userEmail && user.password === userPass});
+  console.log(currentUser)
+  res.cookie('user_id', currentUser.id);
   res.redirect(`/urls`)
 })
 
-app.post("/logout", (req, res) => {
+app.post("/logout", (req, res) => { 
   const user_id = req.cookies["user_id"]
   res.clearCookie('user_id', user_id);
   res.redirect('/urls');
@@ -107,27 +110,46 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars)
 })
 
+
+
+
+
 app.post("/register", (req, res) => {
+  const templateVars = { users }
   //const templateVars = { username: req.cookies["username"] };
   //console.log(req.body.userName["id"]);
-  const user_id = req.body["userName"];
-  res.cookie('user_id', user_id)
-  users[user_id] = {
-    id : generateRandomString(),
+  console.log("req body", req.body)
+  const newUserId = generateRandomString();
+  res.cookie('user_id', newUserId)
+  users[newUserId] = {
+    id : newUserId,
+    name : req.body.userName,
     email : req.body.email,
     password : req.body.password
   };
-  //if email = '' res.error
-  if (users[user_id].email === '') {
-    return res.status(400).send("email field cannot be empty")
-   } if (users[user_id].password === '') {
-   return res.status(400).send("password field cannot be empty")
+  console.log(users)
   
+  //if email = '' res.error
+  
+  // if (users[user_id].email === '') {
+  //   return res.status(400).send("email field cannot be empty");
+  //  } if (users[user_id].password === '') {
+  //  return res.status(400).send("password field cannot be empty");
+  // } for (let u in users) {
+  //   if (u["email"] === users[user_id].email) {
+  //   return res.status(400).send("email already in use")
+   //}
 
-  }
   res.redirect("/urls")
   //res.render(templateVars);
 })
+// const userHelper = function(lookup) {
+//   for (let u in users) {
+//     if (u[lookup] === users[user_id][lookup]) {
+//       return true
+//     }
+//   }
+// }
 
 app.get("/urls/new", (req,res) => {
   
