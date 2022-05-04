@@ -99,6 +99,9 @@ app.post("/urls/:shortURL/update", (req, res) => {
 })
 
 app.post("/urls", (req, res) => {
+  if (loggedIn === false) {
+    res.send("Only logged in users may post here")
+  }
   let shortURL = generateRandomString();
   let longURL = req.body["longURL"];
   urlDatabase[shortURL]= `http://${longURL}`;
