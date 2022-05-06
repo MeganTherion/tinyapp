@@ -118,6 +118,9 @@ app.post('/logout', (req, res) => {
 })
 
 app.post("/urls/:shortURL/update", (req, res) => {
+  if (urlsForUser(req.cookies["user_id"]) === false) {
+    res.status(400).send("gotta log in")
+  } 
   const user_id = req.cookies["user_id"];
   const shortURL = req.params.shortURL;
   const longURL = req.body.longURL;
@@ -130,8 +133,9 @@ app.post("/urls/:shortURL/update", (req, res) => {
 })
 
 app.post("/urls", (req, res) => {
-  if (loggedIn === false) {
-    res.send("Only logged in users may post here")
+  if (urlsForUser(req.cookies["user_id"]) === false) {
+    res.send("gotta log in")
+  
   }
   let shortURL = generateRandomString();
   let longURL = req.body["longURL"];
@@ -147,6 +151,9 @@ app.post("/urls", (req, res) => {
 
 
 app.post("/urls/:shortURL/delete", (req, res) => {
+  if (urlsForUser(req.cookies["user_id"]) === false) {
+    res.status(400).send("gotta log in")
+  } 
   delete urlDatabase[req.params.shortURL];
   res.redirect(`/urls`);
 });
