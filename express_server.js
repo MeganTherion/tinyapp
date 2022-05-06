@@ -12,13 +12,16 @@ function generateRandomString() {
   return newString;
 }
 
-const getData = function(user, database) {
-  if (database[user]) {
-    longURL = database[user].longURL;
-    shortURL = [user]
-    userID = database[user].userID;
-    return { longURL, shortURL, userID }
+
+const urlsForUser = function(id) {
+  let yourURLs = {};
+  for(let shortURL in urlDatabase) {
+    if((urlDatabase[shortURL].userID).includes(id)) {
+      yourURLs[shortURL] = urlDatabase[shortURL].longURL;
+      return yourURLs;
+    }
   }
+  return false;
 }
 
 const urlDatabase = {
@@ -31,7 +34,7 @@ const urlDatabase = {
       userID: "aJ48lW"
   },
   isdoGr: {
-    longURL: "https://www.facebook.ca",
+    longURL: "https://www.facebook.com",
     userID: "user2RandomID"
   }
 };
@@ -66,7 +69,11 @@ app.get("/hello", (req, res) => {
 
 
 app.get("/urls", (req, res) => { 
+  if (loggedIn === false) {
+
+  }
   const templateVars = { 
+    loggedIn: loggedIn,
     user_id: req.cookies["user_id"], 
     urls: urlDatabase
   };
@@ -147,11 +154,16 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL]
-  if (!longURL) {
+  templateVars = { urlDatabase }
+
+  let keys = Object.keys(urlDatabase);
+  if (keys.includes(req.params.shortURL)) {
+    res.redirect(urlDatabase[req.params.shortURL].longURL);
+  } else {
     return res.status(401).send("URL does not exist"); 
   }
-  res.redirect(longURL);
+  res.render(templateVars);
+  res.redirect(urlDatabase[req.params.shortURL].longURL);
 })
 
 app.get("/register", (req, res) => {
@@ -197,12 +209,17 @@ app.get("/urls/new", (req,res) => {
 })
 
 app.get("/urls/:shortURL", (req, res) => {
+  if (urlsForUser(req.cookies["user_id"]) === false) {
+    res.status(400).send("gotta log in")
+  } 
 const templateVars = { user_id : req.cookies["user_id"], 
 shortURL : req.params.shortURL,
 longURL : urlDatabase[req.params.shortURL].longURL };
-console.log(req.params)
+
+//console.log(req.params)
 res.render("urls_show", templateVars)
  res.redirect("/longURL");
+  
 })
 
 
