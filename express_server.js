@@ -180,6 +180,9 @@ app.get("/register", (req, res) => {
 
 
 app.post("/register", (req, res) => {
+  const bcrypt = require('bcryptjs');
+  const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
 const templateVars = { users }
   //console.log("req body", req.body)
   const newUserId = generateRandomString();
@@ -187,8 +190,9 @@ const templateVars = { users }
     id : newUserId,
     name : req.body.userName,
     email : req.body.email,
-    password : req.body.password
+    password : hashedPassword
   };
+  console.log(newUser);
   if (newUser.email === '') {
     return res.status(400).send("email field cannot be empty");
    } if (newUser.password === '') {
