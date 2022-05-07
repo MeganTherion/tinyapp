@@ -202,22 +202,27 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
+  console.log("req bod", req.body);
   if (!email || !password) {
     return res.status(400).send("Please provide email and password");
   }
 
-  let user = {}
+  let user = {};
   for (let u in users) {
-    if (users[u].email === email) {
-      user = users[u]
+    if (users[u].email){
+    user.email = (users[u].email);
+    user.password = (users[u].password);
+    user.id = (users[u].id);
+    //return user;
     }
   }
+
   if (!user) {
     return res.status(400).send("invalid credentials");
   }
 
 const passwordsMatch = bcrypt.compareSync(password, user.password);
-if (!passwordsMatch) {
+if (passwordsMatch === false) {
   return res.status(400).send("invalid credentials");
   }
 
