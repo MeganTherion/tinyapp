@@ -38,12 +38,14 @@ const users = {
   "userRandomID": {
     id: "userRandomID",
     email: "user@example.com",
-    password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
+    password: "purple-monkey-dinosaur"
+    
+   
   },
   "user2RandomID": {
     id: "user2RandomID",
     email: "user2@examle.com",
-    password: bcrypt.hashSync("abc", 10)
+    password: "abc"
   }
 };
 
@@ -183,13 +185,15 @@ app.post("/register", (req, res) => {
       return res.status(400).send("email already in use")
     }
   }
+
+  const hashedPassword = bcrypt.hashSync(password, 10);
   
   const id = generateRandomString()
   //hash password
   users[id] = {
     id,
     email,
-    password
+    password: hashedPassword
   };
 
   res.cookie('user_id', id)
@@ -212,7 +216,7 @@ app.post("/login", (req, res) => {
     return res.status(400).send("invalid credentials");
   }
 
-const passwordsMatch = user.password === password;
+const passwordsMatch = bcrypt.compareSync(password, user.password);
 if (!passwordsMatch) {
   return res.status(400).send("invalid credentials");
   }
@@ -223,7 +227,7 @@ if (!passwordsMatch) {
 
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id');
-  res.redirect('/login');
+  res.redirect('/urls');
 })
 
 
