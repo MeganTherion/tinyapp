@@ -1,4 +1,4 @@
-const { assert } = require('chai');
+// const { assert } = require('chai');
 
 const { checkUser } = require('../helpers.js');
 
@@ -18,7 +18,11 @@ const testUsers = {
 describe('checkUser', function() {
   it('should return a user with valid email & password', function() {
     const user = checkUser(testUsers, email, password)
-    const expectedUserID = "userRandomID";
-   assert(user = expectedUserID, 'user = expectedUserID')
+    
+    const expectedUser = "user@example.com";
+    
+   assert(user = expectedUser, 'user = expectedUserID')
+   console.log(checkUser(testUsers, 'email', 'password'))
+   console.log(expectedUser = "user@example.com");
   });
 });
