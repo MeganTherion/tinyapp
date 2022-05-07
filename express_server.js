@@ -3,21 +3,13 @@ const express = require("express");
 const cookieSession = require('cookie-session');
 const bodyParser = require("body-parser");
 const bcrypt = require('bcryptjs');
+const { urlsForUser, checkUser } = require('./helpers.js')
 
 function generateRandomString() {
   return Math.random().toString(36).slice(2, 8);
 }
 
-function urlsForUser(id) {
-  let yourURLs = {};
-  for (let shortURL in urlDatabase) {
-    if ((urlDatabase[shortURL].userID).includes(id)) {
-      yourURLs[shortURL] = urlDatabase[shortURL].longURL;
-      return yourURLs;
-    }
-  }
-  return false;
-}
+
 
 const urlDatabase = {
   b6UTxQ: {
@@ -39,8 +31,8 @@ const users = {
     id: "userRandomID",
     email: "user@example.com",
     password: "purple-monkey-dinosaur"
-    
-   
+
+
   },
   "user2RandomID": {
     id: "user2RandomID",
@@ -78,7 +70,7 @@ app.get("/hello", (req, res) => {
 //--------------------URLs front-end routes
 app.get("/urls/new", (req, res) => {
   templateVars = {
-    user_id : req.session.user_id
+    user_id: req.session.user_id
   };
   res.render("urls_new", templateVars);
 })
@@ -86,7 +78,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls", (req, res) => {
 
   const templateVars = {
-    user_id : req.session.user_id,
+    user_id: req.session.user_id,
     urls: urlDatabase
   };
   res.render("urls_index", templateVars)
@@ -94,7 +86,7 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
-    user_id : req.session.user_id,
+    user_id: req.session.user_id,
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL
   };
@@ -105,14 +97,14 @@ app.get("/urls/:shortURL", (req, res) => {
 //---------------------auth front-end routes
 app.get("/register", (req, res) => {
   const templateVars = {
-    user_id : req.session.user_id
+    user_id: req.session.user_id
   };
   res.render("register", templateVars)
 })
 
 app.get("/login", (req, res) => {
   const templateVars = {
-    user_id : req.session.user_id,
+    user_id: req.session.user_id,
   }
   res.render("login", templateVars);
 })
@@ -129,7 +121,7 @@ app.post("/urls", (req, res) => {
 
   urlDatabase[shortURL] = {
     longURL: longURL,
-    userID: req.cookies["user_id"]
+    userID: req.session.user_id
   };
   res.redirect(`/urls/${shortURL}`)
 });
@@ -192,7 +184,7 @@ app.post("/register", (req, res) => {
   }
 
   const hashedPassword = bcrypt.hashSync(password, 10);
-  
+
   const id = generateRandomString()
   //hash password
   users[id] = {
@@ -207,28 +199,29 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  console.log("req bod", req.body);
+  //console.log("req bod", req.body);
   if (!email || !password) {
     return res.status(400).send("Please provide email and password");
   }
 
-  let user = {};
-  for (let u in users) {
-    if (users[u].email){
-    user.email = (users[u].email);
-    user.password = (users[u].password);
-    user.id = (users[u].id);
-    //return user;
-    }
-  }
+  // let user = {};
+  // for (let u in users) {
+  //   if (users[u].email){
+  //   user.email = (users[u].email);
+  //   user.password = (users[u].password);
+  //   user.id = (users[u].id);
+  //   //return user;
+  //   }
 
+  const user = checkUser(users, email, password);
+  console.log("user", user)
   if (!user) {
     return res.status(400).send("invalid credentials");
   }
 
-const passwordsMatch = bcrypt.compareSync(password, user.password);
-if (passwordsMatch === false) {
-  return res.status(400).send("invalid credentials");
+  const passwordsMatch = bcrypt.compareSync(password, user.password);
+  if (passwordsMatch === false) {
+    return res.status(400).send("invalid credentials");
   }
 
   req.session.user_id = 'user_id';
