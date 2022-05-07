@@ -1,6 +1,6 @@
 //------------------REQUIREMENTS
 const express = require("express");
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bodyParser = require("body-parser");
 const bcrypt = require('bcryptjs');
 
@@ -55,7 +55,12 @@ const app = express();
 const PORT = 8080; //default port 8080
 app.set("view engine", "ejs")
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser())
+app.use(cookieSession({
+  name: 'session',
+  keys: ['myRandomSuperSecretKey', 'anotherRandomString'],
+  //cookie options:
+  maxAge: 24 * 60 * 60 * 1000 //24 hours
+}))
 
 
 //-----------------ROUTES/ENDPOINTS
@@ -73,7 +78,7 @@ app.get("/hello", (req, res) => {
 //--------------------URLs front-end routes
 app.get("/urls/new", (req, res) => {
   templateVars = {
-    user_id: req.cookies["user_id"],
+    user_id : req.session.user_id
   };
   res.render("urls_new", templateVars);
 })
@@ -81,7 +86,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls", (req, res) => {
 
   const templateVars = {
-    user_id: req.cookies["user_id"],
+    user_id : req.session.user_id,
     urls: urlDatabase
   };
   res.render("urls_index", templateVars)
@@ -89,7 +94,7 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
-    user_id: req.cookies["user_id"],
+    user_id : req.session.user_id,
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL
   };
@@ -100,14 +105,14 @@ app.get("/urls/:shortURL", (req, res) => {
 //---------------------auth front-end routes
 app.get("/register", (req, res) => {
   const templateVars = {
-    user_id: req.cookies["user_id"]
+    user_id : req.session.user_id
   };
   res.render("register", templateVars)
 })
 
 app.get("/login", (req, res) => {
   const templateVars = {
-    user_id: req.cookies["user_id"],
+    user_id : req.session.user_id,
   }
   res.render("login", templateVars);
 })
@@ -156,7 +161,7 @@ app.post("/urls/:shortURL/update", (req, res) => {
 
   urlDatabase[shortURL] = {
     longURL: longURL,
-    userID: req.cookies["user_id"]
+    userID: req.session.user_id
   };
   res.redirect(`/urls/${shortURL}`)
 })
@@ -196,7 +201,7 @@ app.post("/register", (req, res) => {
     password: hashedPassword
   };
 
-  res.cookie('user_id', id)
+  req.session.user_id = 'user_id';
   res.redirect("/urls")
 })
 
@@ -226,12 +231,12 @@ if (passwordsMatch === false) {
   return res.status(400).send("invalid credentials");
   }
 
-  res.cookie('user_id', user.id);
+  req.session.user_id = 'user_id';
   res.redirect('/urls');
 })
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect('/urls');
 })
 
