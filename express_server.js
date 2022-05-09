@@ -12,22 +12,23 @@ function generateRandomString() {
 
 
 const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lW"
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW"
-  },
-  isdoGr: {
-    longURL: "https://www.facebook.com",
-    userID: "user2RandomID"
-  }
+  // b6UTxQ: {
+  //   longURL: "https://www.tsn.ca",
+  //   userID: "aJ48lW"
+  // },
+  // i3BoGr: {
+  //   longURL: "https://www.google.ca",
+  //   userID: "aJ48lW"
+  // },
+  // isdoGr: {
+  //   longURL: "https://www.facebook.com",
+  //   userID: "user2RandomID"
+  // }
 };
 
 const users = {
   "userRandomID": {
+    userName: "rachel",
     id: "userRandomID",
     email: "user@example.com",
     password: "purple-monkey-dinosaur"
@@ -35,6 +36,7 @@ const users = {
 
   },
   "user2RandomID": {
+    userName: "paulyD",
     id: "user2RandomID",
     email: "user2@examle.com",
     password: "abc"
@@ -70,14 +72,18 @@ app.get("/hello", (req, res) => {
 //--------------------URLs front-end routes
 app.get("/urls/new", (req, res) => {
   templateVars = {
+    userName: req.session.userName,
     user_id: req.session.user_id
   };
   res.render("urls_new", templateVars);
 })
 
 app.get("/urls", (req, res) => {
-
+  if (!req.session.user_id) {
+    res.redirect("/login")
+  }
   const templateVars = {
+    userName: req.session.userName,
     user_id: req.session.user_id,
     urls: urlDatabase
   };
@@ -88,7 +94,8 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     user_id: req.session.user_id,
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL
+    longURL: urlDatabase[req.params.shortURL].longURL,
+    userName: req.session.userName
   };
   res.render("urls_show", templateVars)
 })
@@ -97,7 +104,9 @@ app.get("/urls/:shortURL", (req, res) => {
 //---------------------auth front-end routes
 app.get("/register", (req, res) => {
   const templateVars = {
+    userName: req.session.userName,
     user_id: req.session.user_id
+    
   };
   res.render("register", templateVars)
 })
@@ -105,6 +114,7 @@ app.get("/register", (req, res) => {
 app.get("/login", (req, res) => {
   const templateVars = {
     user_id: req.session.user_id,
+    userName: req.session.userName
   }
   res.render("login", templateVars);
 })
@@ -112,6 +122,7 @@ app.get("/login", (req, res) => {
 //------------------URLS/CRUD API
 //create urls
 app.post("/urls", (req, res) => {
+//  console.log(req.body)
   const { longURL } = req.body;
   if (!longURL) {
     return res.status(400).send({ message: "gimme that longURL" })
@@ -121,7 +132,8 @@ app.post("/urls", (req, res) => {
 
   urlDatabase[shortURL] = {
     longURL: longURL,
-    userID: req.session.user_id
+    userID: req.session.user_id,
+    userName: req.session.userName
   };
   res.redirect(`/urls/${shortURL}`)
 });
@@ -153,7 +165,8 @@ app.post("/urls/:shortURL/update", (req, res) => {
 
   urlDatabase[shortURL] = {
     longURL: longURL,
-    userID: req.session.user_id
+    userID: req.session.user_id,
+    userName: req.session.userName
   };
   res.redirect(`/urls/${shortURL}`)
 })
@@ -172,7 +185,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 //----------------AUTHENTICATION/API ROUTES
 app.post("/register", (req, res) => {
-  const { email, password } = req.body;
+  const { userName, email, password } = req.body;
   if (!email || !password) {
     return res.status(400).send("Please provide email and password");
   }
@@ -189,16 +202,19 @@ app.post("/register", (req, res) => {
   //hash password
   users[id] = {
     id,
+    userName,
     email,
     password: hashedPassword
   };
-
-  req.session.user_id = 'user_id';
+  console.log(req.session)
+  req.session.userName = userName;
+  req.session.user_id = id;
+  
   res.redirect("/urls")
 })
 
 app.post("/login", (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, userName } = req.body;
   //console.log("req bod", req.body);
   if (!email || !password) {
     return res.status(400).send("Please provide email and password");

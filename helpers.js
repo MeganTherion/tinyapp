@@ -10,10 +10,16 @@ function urlsForUser(id, database) {
 }
 
 function checkUser(db, add, pass) {
-  let user = {};
+  let user = {
+    userName: '',
+    email: '',
+    password: '',
+    id: ''
+  };
   for (let u in db) {
     //console.log(db[u].email)
     if (db[u][add]) {
+      user.userName = (db[u][userName])
       user.email = (db[u][add]);
       user.password = (db[u][pass]);
       user.id = (db[u].id);
