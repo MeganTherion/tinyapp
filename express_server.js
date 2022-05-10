@@ -9,6 +9,13 @@ function generateRandomString() {
   return Math.random().toString(36).slice(2, 8);
 }
 
+// function myGreeting() {
+//   return  res.status(400).send({ message: "gimme that longURL" });
+//   //res.redirect("/login");
+//   //console.log('im the message')
+// }
+
+
 
 
 const urlDatabase = {
@@ -27,20 +34,20 @@ const urlDatabase = {
 };
 
 const users = {
-  "userRandomID": {
-    userName: "rachel",
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+  // "userRandomID": {
+  //   userName: "rachel",
+  //   id: "userRandomID",
+  //   email: "user@example.com",
+  //   password: "purple-monkey-dinosaur"
 
 
-  },
-  "user2RandomID": {
-    userName: "paulyD",
-    id: "user2RandomID",
-    email: "user2@examle.com",
-    password: "abc"
-  }
+  // },
+  // "user2RandomID": {
+  //   userName: "paulyD",
+  //   id: "user2RandomID",
+  //   email: "user2@examle.com",
+  //   password: "abc"
+  // }
 };
 
 //------------------SETUP/MIDDLEWARES
@@ -80,7 +87,13 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls", (req, res) => {
   if (!req.session.user_id) {
-    res.redirect("/login")
+    // setTimeout(() => {
+    //   res.redirect("/login");
+    // }, 5000);
+    res.status(400).send( "Must log in to see URLs" )
+    
+    //timeout func to redirect
+    //res.redirect("/login")
   }
   const templateVars = {
     userName: req.session.userName,
@@ -122,7 +135,6 @@ app.get("/login", (req, res) => {
 //------------------URLS/CRUD API
 //create urls
 app.post("/urls", (req, res) => {
-//  console.log(req.body)
   const { longURL } = req.body;
   if (!longURL) {
     return res.status(400).send({ message: "gimme that longURL" })
@@ -156,6 +168,9 @@ app.get("/u/:shortURL", (req, res) => {
 
 //update
 app.post("/urls/:shortURL/update", (req, res) => {
+  if (!req.session.user_id) {
+    setTimeout(myGreeting, 5000);
+  }
   const { longURL } = req.body;
   if (!longURL) {
     return res.status(400).send({ message: "gimme that longURL" })
@@ -206,7 +221,7 @@ app.post("/register", (req, res) => {
     email,
     password: hashedPassword
   };
-  console.log(req.session)
+  console.log(users);
   req.session.userName = userName;
   req.session.user_id = id;
   
@@ -215,29 +230,24 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
   const { email, password, userName } = req.body;
-  //console.log("req bod", req.body);
   if (!email || !password) {
     return res.status(400).send("Please provide email and password");
   }
 
-  // let user = {};
-  // for (let u in users) {
-  //   if (users[u].email){
-  //   user.email = (users[u].email);
-  //   user.password = (users[u].password);
-  //   user.id = (users[u].id);
-  //   //return user;
-  //   }
-
-  const user = checkUser(users, email, password);
-  console.log("user", user)
-  if (!user) {
-    return res.status(400).send("invalid credentials");
+  for (let u in users) {
+    if (!users[u].email) {
+      return res.status(400).send("user cannot be found");
+    }
+    user = users[u];
   }
+ 
+  // if (!checkUser(users, 'email', 'password')) {
+  //   return res.status(400).send("user cannot be found");
+  // }
 
   const passwordsMatch = bcrypt.compareSync(password, user.password);
   if (passwordsMatch === false) {
-    return res.status(400).send("invalid credentials");
+    return res.status(400).send("wrong password");
   }
 
   req.session.user_id = 'user_id';
@@ -246,6 +256,7 @@ app.post("/login", (req, res) => {
 
 app.post('/logout', (req, res) => {
   req.session = null;
+  console.log(users);
   res.redirect('/urls');
 })
 

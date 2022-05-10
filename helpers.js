@@ -9,24 +9,24 @@ function urlsForUser(id, database) {
   return false;
 }
 
-function checkUser(db, add, pass) {
+function checkUser(db, add) {
   let user = {
-    userName: '',
-    email: '',
-    password: '',
-    id: ''
+    userName,
+    email,
+    password,
+    id
   };
   for (let u in db) {
     //console.log(db[u].email)
     if (db[u][add]) {
-      user.userName = (db[u][userName])
-      user.email = (db[u][add]);
-      user.password = (db[u][pass]);
-      user.id = (db[u].id);
+      user = [u];
       return user;
     }
   }
 }
+
+
+
 
 
 module.exports = { urlsForUser, checkUser }
