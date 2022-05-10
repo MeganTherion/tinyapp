@@ -104,10 +104,15 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  console.log(req.session, req.params);
+  if (!req.session.user_id) {
+    res.status(400).send("Must log in to edit URLs")
+  }
+  console.log(urlDatabase[req.params.shortURL])
   const templateVars = {
     user_id: req.session.user_id,
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL,
+    longURL: urlDatabase[req.params.shortURL],
     userName: req.session.userName
   };
   res.render("urls_show", templateVars)
@@ -157,6 +162,10 @@ app.get("/urls.json", (req, res) => {
 
 //read one
 app.get("/u/:shortURL", (req, res) => {
+  
+  if (!req.session.user_id) {
+    return res.status(400).send({ message: 'must log in to delete URLs'})
+  }
   const { shortURL } = req.params
   const urlObject = urlDatabase[shortURL]
   if (!urlObject) {
@@ -168,8 +177,8 @@ app.get("/u/:shortURL", (req, res) => {
 
 //update
 app.post("/urls/:shortURL/update", (req, res) => {
-  if (!req.session.user_id) {
-    setTimeout(myGreeting, 5000);
+  if (!req.session) {
+    return res.status(400).send({ message: 'must log in to delete URLs'})
   }
   const { longURL } = req.body;
   if (!longURL) {
@@ -188,6 +197,9 @@ app.post("/urls/:shortURL/update", (req, res) => {
 
 //delete
 app.post("/urls/:shortURL/delete", (req, res) => {
+  if (!req.session) {
+    return res.status(400).send({ message: 'must log in to delete URLs'})
+  }
   const { shortURL } = req.params;
   const urlObject = urlDatabase[shortURL]
   if (!urlObject) {
@@ -241,9 +253,6 @@ app.post("/login", (req, res) => {
     user = users[u];
   }
  
-  // if (!checkUser(users, 'email', 'password')) {
-  //   return res.status(400).send("user cannot be found");
-  // }
 
   const passwordsMatch = bcrypt.compareSync(password, user.password);
   if (passwordsMatch === false) {
