@@ -245,9 +245,9 @@ app.post("/login", (req, res) => {
   if (!email || !password) {
     return res.status(400).send("Please provide email and password");
   }
-
+console.log(users);
   for (let u in users) {
-    if (!users[u].email) {
+    if (users[u].email !== email) {
       return res.status(400).send("user cannot be found");
     }
     user = users[u];
